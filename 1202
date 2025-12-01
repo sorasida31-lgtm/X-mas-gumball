@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>행운의 검볼 뽑기</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Gamja+Flower&family=Noto+Sans+KR:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(to bottom, #0f172a 0%, #1e293b 50%, #334155 100%);
+            overflow-x: hidden;
+            color: white;
+        }
+
+        .title-font {
+            font-family: 'Gamja Flower', cursive;
+        }
+
+        /* 전체 배경 눈 내리는 효과 */
+        .snowflake {
+            position: fixed;
+            top: -10px;
+            color: #fff;
+            font-size: 1.2em;
+            font-family: Arial;
+            text-shadow: 0 0 2px #fff;
+            z-index: 0;
+            user-select: none;
+            cursor: default;
+            animation-name: snowflakes-fall, snowflakes-shake;
+            animation-duration: 10s, 3s;
+            animation-timing-function: linear, ease-in-out;
+            animation-iteration-count: infinite, infinite;
+            animation-play-state: running, running;
+        }
+
+        /* 유리볼 안쪽 스노우볼 효과 */
+        .globe-snow {
+            position: absolute;
+            top: -10px;
+            background-color: white;
+            border-radius: 50%;
+            z-index: 5; /* 공들 뒤/앞 사이 */
+            pointer-events: none;
+            animation: globe-snow-fall linear infinite;
+        }
+
+        @keyframes snowflakes-fall {
+            0% { top: -10%; }
+            100% { top: 100%; }
+        }
+
+        @keyframes snowflakes-shake {
+            0% { transform: translateX(0px); }
+            50% { transform: translateX(80px); }
+            100% { transform: translateX(0px); }
+        }
+
+        @keyframes globe-snow-fall {
+            0% { top: -10%; transform: translateX(0); opacity: 0; }
+            10% { opacity: 0.8; }
+            50% { transform: translateX(10px); }
+            90% { opacity: 0.8; }
+            100% { top: 110%; transform: translateX(-10px); opacity: 0; }
+        }
+
+        /* 대기 중 검볼 움직임 */
+        @keyframes washing-machine-spin {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            20% { transform: translate(20px, -10px) rotate(40deg); }
+            40% { transform: translate(-10px, 20px) rotate(80deg); }
+            60% { transform: translate(-20px, -5px) rotate(120deg); }
+            80% { transform: translate(5px, -20px) rotate(160deg); }
+            100% { transform: translate(0, 0) rotate(360deg); }
+        }
+
+        .ball-tumble {
+            animation-name: washing-machine-spin;
+            animation-iteration-count: infinite;
+            animation-timing-function: linear;
+        }
+
+        /* 검볼 기계 스타일 */
+        .gumball-machine-glass {
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1) 60%, rgba(255, 255, 255, 0.05));
+            box-shadow: inset -10px -10px 20px rgba(0,0,0,0.2), 0 0 15px rgba(255,255,255,0.3);
+            backdrop-filter: blur(2px);
+            border: 4px solid rgba(220, 38, 38, 0.8);
+        }
+
+        .ball-drop {
+            animation: dropBounce 1s ease-out forwards;
+        }
+
+        @keyframes dropBounce {
+            0% { transform: translateY(-150px) scale(0.8); opacity: 0; }
+            40% { transform: translateY(0) scale(1.1); opacity: 1; }
+            60% { transform: translateY(-20px) scale(0.95); }
+            80% { transform: translateY(0) scale(1.05); }
+            100% { transform: translateY(0) scale(1); }
+        }
+
+        /* 결과 화면 팝업 애니메이션 */
+        @keyframes popup-scale {
+            0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+            60% { transform: scale(1.1) rotate(10deg); opacity: 1; }
+            80% { transform: scale(0.95) rotate(-5deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        .result-popup {
+            animation: popup-scale 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        .crank-turn {
+            animation: turnCrank 0.5s ease-in-out;
+        }
+
+        @keyframes turnCrank {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 산타 썰매 애니메이션 */
+        .santa-sleigh-container {
+            position: fixed;
+            top: 8%;
+            left: 110%; 
+            animation: flySanta 20s linear infinite;
+            z-index: 50; 
+            opacity: 0.95;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.5));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            pointer-events: none;
+        }
+
+        /* 말풍선 스타일 */
+        .santa-bubble {
+            background: white;
+            color: black;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-family: 'Noto Sans KR', sans-serif;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            position: relative;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            animation: bubble-bounce 2s infinite ease-in-out;
+        }
+        .santa-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 8px 8px 0;
+            border-style: solid;
+            border-color: white transparent;
+        }
+
+        @keyframes bubble-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        @keyframes flySanta {
+            0% { left: 110%; transform: translateY(0) rotate(5deg); }
+            25% { transform: translateY(-30px) rotate(0deg); }
+            50% { transform: translateY(0) rotate(-5deg); }
+            75% { transform: translateY(30px) rotate(0deg); }
+            100% { left: -40%; transform: translateY(0) rotate(5deg); }
+        }
+
+        /* 배경 장식 */
+        .bg-decoration {
+            position: fixed;
+            bottom: 0;
+            z-index: 0;
+            font-size: 8rem;
+            opacity: 0.9;
+            filter: drop-shadow(0 0 20px rgba(0,0,0,0.5));
+            pointer-events: none;
+        }
+        .snowman { left: 2%; bottom: 2%; animation: sway 3s ease-in-out infinite alternate; }
+        .tree { right: 2%; bottom: 2%; animation: twinkle 2s ease-in-out infinite alternate; }
+
+        @keyframes sway {
+            from { transform: rotate(-5deg); }
+            to { transform: rotate(5deg); }
+        }
+
+        @keyframes twinkle {
+            from { filter: drop-shadow(0 0 10px rgba(255,215,0,0.3)) brightness(1); }
+            to { filter: drop-shadow(0 0 20px rgba(255,215,0,0.6)) brightness(1.2); }
+        }
+
+        /* 버튼 반짝임 효과 */
+        @keyframes golden-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.7); border-color: #fbbf24; }
+            70% { box-shadow: 0 0 0 15px rgba(250, 204, 21, 0); border-color: #f59e0b; }
+            100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0); border-color: #fbbf24; }
+        }
+
+        @keyframes shine-sweep {
+            0% { transform: translateX(-150%) rotate(45deg); }
+            20% { transform: translateX(150%) rotate(45deg); }
+            100% { transform: translateX(150%) rotate(45deg); }
+        }
+
+        .crank-attention {
+            animation: golden-pulse 2s infinite;
+        }
+
+        .shine-effect::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.8) 50%, transparent 100%);
+            transform: translateX(-150%) rotate(45deg);
+            animation: shine-sweep 3s infinite ease-in-out;
+            pointer-events: none;
+        }
+
+        /* 셋업 모달 스타일 */
+        .setup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6); 
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(3px); 
+        }
+
+        /* 크리스마스 카드 스타일 */
+        .christmas-card {
+            background: #b91c1c; 
+            border: 8px solid #fbbf24; 
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 30px rgba(0,0,0,0.3);
+            position: relative;
+            max-width: 500px;
+            width: 90%;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 20px; 
+        }
+        
+        .corner-deco {
+            position: absolute;
+            font-size: 7rem; 
+            filter: drop-shadow(4px 4px 4px rgba(0,0,0,0.3));
+            z-index: 20;
+        }
+
+        /* 장식 애니메이션 */
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(-10deg); }
+            50% { transform: rotate(10deg); }
+        }
+        @keyframes swing {
+            0% { transform: rotate(10deg); }
+            50% { transform: rotate(-10deg); }
+            100% { transform: rotate(10deg); }
+        }
+        @keyframes pulse-tree {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        @keyframes bounce-snow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .anim-wiggle { animation: wiggle 2s ease-in-out infinite; }
+        .anim-swing { animation: swing 3s ease-in-out infinite; transform-origin: top center; }
+        .anim-pulse { animation: pulse-tree 2s ease-in-out infinite; }
+        .anim-bounce { animation: bounce-snow 1.5s ease-in-out infinite; }
+
+        /* 검볼 내부 빛나는 효과 */
+        .glow-ball {
+            box-shadow: inset -2px -2px 6px rgba(0,0,0,0.3), 0 0 10px rgba(255,255,255,0.5);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #2d3748; }
+        ::-webkit-scrollbar-thumb { background: #c53030; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // 눈송이 컴포넌트
+        const Snow = () => {
+            const flakes = Array.from({ length: 40 }).map((_, i) => {
+                const style = {
+                    left: `${Math.random() * 100}%`,
+                    animationDelay: `${Math.random() * 10}s, ${Math.random() * 3}s`,
+                    opacity: Math.random() * 0.7 + 0.3
+                };
+                return <div key={i} className="snowflake" style={style}>❅</div>;
+            });
+            return <div aria-hidden="true">{flakes}</div>;
+        };
+
+        // 유리볼 안쪽 눈송이
+        const GlobeSnow = () => {
+            const flakes = Array.from({ length: 30 }).map((_, i) => {
+                const size = Math.random() * 3 + 2; 
+                const style = {
+                    left: `${Math.random() * 100}%`,
+                    width: `${size}px`,
+                    height: `${size}px`,
+                    animationDelay: `${Math.random() * 5}s`,
+                    animationDuration: `${3 + Math.random() * 4}s`,
+                    opacity: Math.random() * 0.6 + 0.4
+                };
+                return <div key={i} className="globe-snow" style={style}></div>;
+            });
+            return <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden rounded-full">{flakes}</div>;
+        };
+
+        const App = () => {
+            // 초기 1~20번 생성 함수
+            const generateInitialItems = (count) => {
+                return Array.from({length: count}, (_, i) => `${i+1}번`).join(', ');
+            };
+
+            // 상태 관리
+            const [numberCount, setNumberCount] = useState(20); 
+            const [itemsInput, setItemsInput] = useState(generateInitialItems(20));
+            const [items, setItems] = useState([]);
+            const [currentBall, setCurrentBall] = useState(null);
+            const [isReplacementMode, setIsReplacementMode] = useState(true); 
+            const [isSoundOn, setIsSoundOn] = useState(true);
+            const [isMusicOn, setIsMusicOn] = useState(false);
+            const [language, setLanguage] = useState('ko-KR'); 
+            const [isAnimating, setIsAnimating] = useState(false);
+            const [history, setHistory] = useState([]);
+
+            // 학교 정보 및 제목 설정 상태
+            const [mainTitle, setMainTitle] = useState("지묘초 행운의 검볼 뽑기"); 
+            const [isSetupComplete, setIsSetupComplete] = useState(false); 
+            const [schoolInfo, setSchoolInfo] = useState({ name: '', grade: '', classNum: '', userName: '' });
+
+            const fileInputRef = useRef(null);
+            
+            // Web Audio API Context
+            const audioCtxRef = useRef(null);
+            const bgmOscillatorsRef = useRef([]);
+            const bgmIntervalRef = useRef(null);
+
+            useEffect(() => {
+                parseItems(itemsInput);
+                return () => stopBGM();
+            }, []);
+
+            // 음악 제어 Effect (Web Audio API)
+            useEffect(() => {
+                if (isMusicOn) {
+                    playBGM();
+                } else {
+                    stopBGM();
+                }
+            }, [isMusicOn]);
+
+            const getAudioContext = () => {
+                if (!audioCtxRef.current) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContext) {
+                        audioCtxRef.current = new AudioContext();
+                    }
+                }
+                return audioCtxRef.current;
+            };
+
+            const resumeAudioContext = () => {
+                const ctx = getAudioContext();
+                if (ctx && ctx.state === 'suspended') {
+                    ctx.resume().catch(e => console.log(e));
+                }
+            };
+
+            const toggleMusic = () => {
+                resumeAudioContext();
+                setIsMusicOn(prev => !prev);
+            };
+
+            // Jingle Bells Melody Sequencer (Only Jingle Bells)
+            const playBGM = () => {
+                const ctx = getAudioContext();
+                if (!ctx) return;
+                if (ctx.state === 'suspended') ctx.resume();
+                
+                // 음계 주파수 (Hz) - C Major
+                const B3 = 246.94, C4 = 261.63, D4 = 293.66, E4 = 329.63, F4 = 349.23, G4 = 392.00, A4 = 440.00, B4 = 493.88, C5 = 523.25;
+                
+                // 박자 (ms) - 적당한 속도
+                const Q = 250; // 4분음표 (Quarter) - 1박
+                const E = 125; // 8분음표 (Eighth) - 0.5박
+                const H = 500; // 2분음표 (Half) - 2박
+                const W = 1000; // 온음표 (Whole) - 4박
+                const S = 30;  // 짧은 간격 (Silence)
+
+                // Jingle Bells Melody
+                const jingleBells = [
+                    // Part 1: Jingle bells, jingle bells, jingle all the way
+                    {f:E4, d:Q}, {f:0, d:S}, {f:E4, d:Q}, {f:0, d:S}, {f:E4, d:H}, {f:0, d:S}, 
+                    {f:E4, d:Q}, {f:0, d:S}, {f:E4, d:Q}, {f:0, d:S}, {f:E4, d:H}, {f:0, d:S}, 
+                    {f:E4, d:Q}, {f:0, d:S}, {f:G4, d:Q}, {f:0, d:S}, {f:C4, d:Q}, {f:0, d:S}, {f:D4, d:Q}, {f:0, d:S}, {f:E4, d:W}, {f:0, d:S}, 
+
+                    // Part 2: Oh what fun it is to ride in a one-horse open sleigh
+                    {f:F4, d:Q}, {f:0, d:S}, {f:F4, d:Q}, {f:0, d:S}, {f:F4, d:Q}, {f:0, d:S}, {f:F4, d:Q}, {f:0, d:S}, {f:F4, d:Q}, {f:0, d:S}, 
+                    {f:E4, d:Q}, {f:0, d:S}, {f:E4, d:Q}, {f:0, d:S}, {f:E4, d:Q}, {f:0, d:S}, {f:E4, d:Q}, {f:0, d:S}, {f:E4, d:Q}, {f:0, d:S}, 
+                    {f:E4, d:Q}, {f:0, d:S}, {f:D4, d:Q}, {f:0, d:S}, {f:D4, d:Q}, {f:0, d:S}, {f:E4, d:Q}, {f:0, d:S}, 
+                    {f:D4, d:H}, {f:0, d:S}, {f:G4, d:H}, {f:0, d:S}
+                ];
+
+                // 울면 안 돼 제거하고 징글벨만 재생
+                const melody = [...jingleBells]; 
+
+                let noteIndex = 0;
+
+                const playNextNote = () => {
+                    if (!isMusicOn) return;
+                    
+                    const note = melody[noteIndex];
+                    if (note.f > 0) {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'triangle'; 
+                        osc.frequency.setValueAtTime(note.f, ctx.currentTime);
+                        
+                        gain.gain.setValueAtTime(0.2, ctx.currentTime); 
+                        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + note.d/1000);
+
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        
+                        osc.start();
+                        osc.stop(ctx.currentTime + note.d/1000);
+                        bgmOscillatorsRef.current.push(osc);
+                    }
+
+                    noteIndex = (noteIndex + 1) % melody.length;
+                    bgmIntervalRef.current = setTimeout(playNextNote, note.d);
+                };
+
+                playNextNote();
+            };
+
+            const stopBGM = () => {
+                if (bgmIntervalRef.current) clearTimeout(bgmIntervalRef.current);
+                bgmOscillatorsRef.current.forEach(osc => {
+                    try { osc.stop(); } catch(e){}
+                });
+                bgmOscillatorsRef.current = [];
+            };
+
+            const handleSetupComplete = () => {
+                resumeAudioContext();
+                if (!schoolInfo.name || !schoolInfo.grade || !schoolInfo.classNum) {
+                    alert("학교, 학년, 반을 모두 입력해주세요!");
+                    return;
+                }
+                const newTitle = `${schoolInfo.name} ${schoolInfo.grade}학년 ${schoolInfo.classNum}반 행운의 검볼 뽑기`;
+                setMainTitle(newTitle);
+                setIsSetupComplete(true);
+                playConfetti();
+                playFanfare();
+            };
+
+            const handleSkipSetup = () => {
+                resumeAudioContext();
+                setMainTitle("행운의 검볼 뽑기"); 
+                setSchoolInfo({ name: '', grade: '', classNum: '', userName: '' }); 
+                setIsSetupComplete(true);
+                playConfetti();
+                playFanfare();
+            };
+
+            const playConfetti = () => {
+                var duration = 3 * 1000;
+                var animationEnd = Date.now() + duration;
+                var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 200 };
+                function randomInRange(min, max) { return Math.random() * (max - min) + min; }
+                var interval = setInterval(function() {
+                    var timeLeft = animationEnd - Date.now();
+                    if (timeLeft <= 0) return clearInterval(interval);
+                    var particleCount = 50 * (timeLeft / duration);
+                    confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+                    confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+                }, 250);
+            };
+
+            const parseItems = (text) => {
+                const list = text.split(/[,\n]+/).map(item => item.trim()).filter(item => item !== "");
+                setItems(list);
+            };
+
+            const handleInputChange = (e) => {
+                setItemsInput(e.target.value);
+                parseItems(e.target.value);
+            };
+
+            const handleFileUpload = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const text = event.target.result;
+                    const normalizedText = text.replace(/[\r\n]+/g, ', ');
+                    setItemsInput(normalizedText);
+                    parseItems(normalizedText);
+                };
+                reader.readAsText(file);
+                e.target.value = '';
+            };
+
+            const triggerFileUpload = () => { fileInputRef.current.click(); };
+            const adjustCount = (delta) => { setNumberCount(prev => Math.max(1, prev + delta)); };
+            
+            const applyNumberGenerator = () => {
+                const newText = generateInitialItems(numberCount);
+                setItemsInput(newText);
+                parseItems(newText);
+                setHistory([]); 
+                setCurrentBall(null);
+            };
+
+            // 전체 삭제 함수
+            const clearAll = () => {
+                setItemsInput("");
+                setItems([]);
+                setCurrentBall(null);
+            };
+
+            // 재설정 및 적용 함수 (Apply)
+            const resetGame = () => {
+                parseItems(itemsInput);
+                setHistory([]);
+                setCurrentBall(null);
+                setIsAnimating(false);
+            };
+
+            // 숫자를 한글(한자어) 발음으로 변환하는 함수
+            const numberToKorean = (number) => {
+                const units = ['', '십', '백', '천', '만'];
+                const digits = ['', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
+                let result = '';
+                let strNum = String(number);
+                let len = strNum.length;
+
+                for (let i = 0; i < len; i++) {
+                    let n = parseInt(strNum[i]);
+                    if (n === 0) continue;
+                    
+                    let d = digits[n];
+                    let u = units[len - 1 - i];
+                    
+                    if (n === 1 && len - 1 - i > 0) {
+                        d = '';
+                    }
+                    
+                    result += d + u;
+                }
+                
+                if (result === '') return '영';
+                return result;
+            };
+
+            // TTS 텍스트 처리 함수
+            const getSpeechText = (text) => {
+                if (language === 'ko-KR') {
+                    const regex = /^(\d+)(번)?$/;
+                    const match = text.match(regex);
+                    if (match) {
+                        const num = parseInt(match[1]);
+                        const koreanNum = numberToKorean(num);
+                        return koreanNum; 
+                    }
+                } else {
+                    return text.replace(/번$/, '');
+                }
+                return text;
+            };
+
+            const speak = (text) => {
+                if (!isSoundOn) return;
+                window.speechSynthesis.cancel();
+                
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = language; 
+                utterance.rate = 1.0;
+                utterance.pitch = 1.1;
+                window.speechSynthesis.speak(utterance);
+            };
+
+            // Web Audio API를 이용한 효과음 (파일 의존성 제거)
+            const playSoundEffect = (type) => {
+                if (!isSoundOn) return;
+                
+                const ctx = getAudioContext();
+                if (!ctx) return;
+                if (ctx.state === 'suspended') ctx.resume();
+                
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                if (type === 'crank') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(100, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.3);
+                    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.3);
+                } else if (type === 'pop') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.1);
+                    gain.gain.setValueAtTime(0.5, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.3);
+                }
+            };
+
+            // 팡파레 효과음 (Web Audio API)
+            const playFanfare = () => {
+                if (!isSoundOn) return;
+                const ctx = getAudioContext();
+                if (!ctx) return;
+                if (ctx.state === 'suspended') ctx.resume();
+
+                const notes = [523.25, 659.25, 783.99, 1046.50]; 
+                const timings = [0, 0.1, 0.2, 0.3];
+                const duration = 0.4;
+
+                notes.forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, ctx.currentTime + timings[i]);
+                    gain.gain.setValueAtTime(0.2, ctx.currentTime + timings[i]);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + timings[i] + duration);
+                    
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    
+                    osc.start(ctx.currentTime + timings[i]);
+                    osc.stop(ctx.currentTime + timings[i] + duration);
+                });
+            };
+
+            const drawBall = () => {
+                if (isAnimating) return;
+                if (items.length === 0) {
+                    alert("뽑기 통이 비었습니다! 내용을 채워주세요.");
+                    return;
+                }
+
+                setIsAnimating(true);
+                setCurrentBall(null); 
+                playSoundEffect('crank');
+
+                setTimeout(() => {
+                    const randomIndex = Math.floor(Math.random() * items.length);
+                    const selectedItem = items[randomIndex];
+
+                    setCurrentBall(selectedItem);
+                    setHistory(prev => [selectedItem, ...prev]);
+                    
+                    playSoundEffect('pop');
+                    playFanfare(); 
+                    
+                    const regex = /^(\d+)(번)?$/;
+                    const match = selectedItem.match(regex);
+                    const itemText = getSpeechText(selectedItem); 
+                    
+                    let message = "";
+                    
+                    if (language === 'ko-KR') {
+                        const suffix = match ? "번" : "";
+                        message = `축하합니다. 당첨자는 ${itemText}${suffix} 입니다.`;
+                    } else {
+                        // 영어 모드일 때는 단어만 읽기
+                        message = itemText;
+                    }
+                    speak(message);
+
+                    confetti({
+                        particleCount: 150,
+                        spread: 80,
+                        origin: { y: 0.6 },
+                        colors: ['#ff0000', '#00ff00', '#ffffff', '#ffd700'],
+                        shapes: ['circle', 'star']
+                    });
+
+                    if (!isReplacementMode) {
+                        const newItems = [...items];
+                        newItems.splice(randomIndex, 1);
+                        setItems(newItems);
+                    }
+
+                    setIsAnimating(false);
+                }, 800);
+            };
+
+            const getBallColor = (idx) => {
+                const colors = [
+                    'bg-red-500', 'bg-green-600', 'bg-yellow-400', 'bg-blue-500', 
+                    'bg-purple-500', 'bg-pink-500', 'bg-orange-500', 'bg-teal-500'
+                ];
+                return colors[idx % colors.length];
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col items-center justify-center p-4 relative z-10 text-white overflow-hidden">
+                    <Snow />
+                    
+                    {/* Setup Overlay */}
+                    {!isSetupComplete && (
+                        <div className="setup-overlay animate-[fadeIn_0.5s_ease-out]">
+                            <div className="christmas-card relative">
+                                {/* Corners - With Animations */}
+                                <div className="corner-deco -top-12 -left-12 rotate-[-15deg]">
+                                    <div className="anim-wiggle">🎀</div>
+                                </div>
+                                <div className="corner-deco -top-12 -right-12 rotate-[15deg]">
+                                    <div className="anim-swing">🔔</div>
+                                </div>
+                                <div className="corner-deco -bottom-12 -left-12 rotate-[-10deg]">
+                                    <div className="anim-pulse">🎄</div>
+                                </div>
+                                <div className="corner-deco -bottom-12 -right-12 rotate-[10deg]">
+                                    <div className="anim-bounce">☃️</div>
+                                </div>
+
+                                {/* Top Santa */}
+                                <div className="absolute -top-24 left-1/2 transform -translate-x-1/2 text-9xl drop-shadow-2xl z-30">🎅</div>
+
+                                <h2 className="text-3xl font-bold mb-6 mt-12 text-yellow-300 title-font drop-shadow-md border-b-2 border-yellow-400/50 pb-2 relative z-10">
+                                    정보를 입력해주세요
+                                </h2>
+                                <div className="space-y-4 relative z-10">
+                                    <div>
+                                        <label className="block text-left text-sm font-bold text-yellow-100 mb-1">학교 이름</label>
+                                        <input 
+                                            type="text" 
+                                            value={schoolInfo.name}
+                                            onChange={(e) => setSchoolInfo({...schoolInfo, name: e.target.value})}
+                                            placeholder="예: 지묘초" 
+                                            className="w-full p-3 rounded-xl bg-red-900/80 border-2 border-yellow-500 focus:border-yellow-300 focus:outline-none text-white transition-all placeholder-red-300"
+                                        />
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <div className="flex-1">
+                                            <label className="block text-left text-sm font-bold text-yellow-100 mb-1">학년</label>
+                                            <input 
+                                                type="number" 
+                                                value={schoolInfo.grade}
+                                                onChange={(e) => setSchoolInfo({...schoolInfo, grade: e.target.value})}
+                                                placeholder="3" 
+                                                className="w-full p-3 rounded-xl bg-red-900/80 border-2 border-yellow-500 focus:border-yellow-300 focus:outline-none text-white transition-all text-center placeholder-red-300"
+                                            />
+                                        </div>
+                                        <div className="flex-1">
+                                            <label className="block text-left text-sm font-bold text-yellow-100 mb-1">반</label>
+                                            <input 
+                                                type="number" 
+                                                value={schoolInfo.classNum}
+                                                onChange={(e) => setSchoolInfo({...schoolInfo, classNum: e.target.value})}
+                                                placeholder="1" 
+                                                className="w-full p-3 rounded-xl bg-red-900/80 border-2 border-yellow-500 focus:border-yellow-300 focus:outline-none text-white transition-all text-center placeholder-red-300"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-left text-sm font-bold text-yellow-100 mb-1">이름 (선택)</label>
+                                        <input 
+                                            type="text" 
+                                            value={schoolInfo.userName}
+                                            onChange={(e) => setSchoolInfo({...schoolInfo, userName: e.target.value})}
+                                            placeholder="홍길동 (입력 시 산타가 인사해요!)" 
+                                            className="w-full p-3 rounded-xl bg-red-900/80 border-2 border-yellow-500 focus:border-yellow-300 focus:outline-none text-white transition-all placeholder-red-300"
+                                        />
+                                    </div>
+                                    <div className="flex flex-col gap-2 mt-4">
+                                        <button 
+                                            onClick={handleSetupComplete}
+                                            className="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-xl shadow-[0_4px_0_rgb(21,128,61)] active:shadow-none active:translate-y-1 transition-all text-lg flex items-center justify-center gap-2 border-2 border-green-400"
+                                        >
+                                            <i data-lucide="sparkles" className="w-5 h-5"></i> 시작하기
+                                        </button>
+                                        <button 
+                                            onClick={handleSkipSetup}
+                                            className="w-full bg-gray-500 hover:bg-gray-400 text-gray-100 font-bold py-2 rounded-xl transition-all text-sm flex items-center justify-center gap-1 border border-gray-400"
+                                        >
+                                            입력 없이 바로 시작하기
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 배경 장식 */}
+                    <div className="santa-sleigh-container">
+                        {isSetupComplete && schoolInfo.userName && (
+                            <div className="santa-bubble">
+                                {schoolInfo.userName}님! 행복한 시간 되세요!
+                            </div>
+                        )}
+                        {isSetupComplete && schoolInfo.name && (
+                            <div className="bg-red-600 text-white text-lg md:text-2xl font-bold px-4 py-1 rounded-full border-2 border-yellow-400 shadow-[0_0_15px_rgba(255,215,0,0.6)] mb-2 whitespace-nowrap animate-pulse title-font">
+                                {schoolInfo.name} {schoolInfo.grade}학년 {schoolInfo.classNum}반
+                            </div>
+                        )}
+                        <div className="text-7xl md:text-8xl filter drop-shadow-lg">🦌🛷🎅💨</div>
+                    </div>
+                    
+                    <div className="bg-decoration snowman hidden lg:block">☃️</div>
+                    <div className="bg-decoration tree hidden lg:block">🎄</div>
+
+                    {/* Header */}
+                    <div className="text-center mb-8 relative z-20">
+                        <h1 className="text-6xl md:text-7xl text-red-500 title-font drop-shadow-[0_4px_4px_rgba(255,255,255,0.8)] animate-pulse">
+                            Merry Christmas
+                        </h1>
+                        <p className={`text-4xl mt-4 text-green-400 title-font font-bold drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] tracking-wide transition-all duration-1000 ${isSetupComplete ? 'scale-110 text-yellow-300' : ''}`}>
+                            {mainTitle}
+                        </p>
+                    </div>
+
+                    <div className="flex flex-col lg:flex-row gap-12 w-full max-w-6xl justify-center items-start relative z-20">
+                        
+                        {/* Machine Section */}
+                        <div className="flex flex-col items-center justify-center relative w-full lg:w-1/2">
+                            {/* The Machine */}
+                            <div className="relative w-80 h-[520px] flex flex-col items-center transform hover:scale-105 transition-transform duration-500">
+                                {/* Top Decoration */}
+                                <div className="w-20 h-20 bg-yellow-400 rounded-full mb-[-25px] z-20 flex items-center justify-center shadow-[0_0_20px_rgba(255,215,0,0.6)] border-4 border-yellow-200 animate-bounce">
+                                    <span className="text-4xl">🌟</span>
+                                </div>
+                                
+                                {/* Glass Globe */}
+                                <div className="w-72 h-72 rounded-full border-8 border-red-700 relative overflow-hidden bg-blue-100/10 gumball-machine-glass z-10 flex items-center justify-center">
+                                    <GlobeSnow />
+                                    
+                                    {/* Balls inside - Idle Animation Added */}
+                                    <div className="absolute inset-0 flex flex-wrap content-end justify-center p-8 gap-1 opacity-95 z-10">
+                                        {items.length > 0 ? (
+                                            items.slice(0, 30).map((item, idx) => (
+                                                <div 
+                                                    key={idx} 
+                                                    className={`w-10 h-10 rounded-full ${getBallColor(idx)} border-2 border-white/40 shadow-[inset_-2px_-2px_6px_rgba(0,0,0,0.3)] flex items-center justify-center text-[9px] text-white font-bold overflow-hidden whitespace-nowrap drop-shadow-sm ball-tumble`}
+                                                    style={{animationDuration: `${2.0 + Math.random() * 2.0}s`}}
+                                                >
+                                                    <span className="drop-shadow-md">{item.length > 3 ? '..' : item}</span>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-gray-200 font-bold text-lg drop-shadow-md">텅 빔!</div>
+                                        )}
+                                        {items.length > 30 && <div className="absolute top-1/2 text-white font-bold drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] text-xl">+{items.length - 30}</div>}
+                                    </div>
+                                    <div className="absolute top-4 left-4 w-20 h-10 bg-white/20 rounded-full transform -rotate-45 blur-md pointer-events-none z-20"></div>
+                                </div>
+
+                                {/* Base */}
+                                <div className="w-64 h-72 bg-gradient-to-b from-red-600 to-red-800 rounded-b-[3rem] rounded-t-lg -mt-10 relative shadow-2xl flex flex-col items-center border-t-8 border-red-900">
+                                    <div className="mt-2 w-40 h-8 bg-gray-200 rounded text-center flex items-center justify-center text-red-800 font-bold text-xs shadow-inner border border-gray-300">
+                                        CHRISTMAS EDITION
+                                    </div>
+                                    <div className="mt-6 w-24 h-24 bg-gray-800 rounded-xl border-4 border-gray-600 relative flex items-center justify-center overflow-visible shadow-[inset_0_0_10px_rgba(0,0,0,0.8)]">
+                                        <div className="absolute top-0 w-full h-4 bg-black/40"></div>
+                                    </div>
+                                    <div className="mt-4 flex flex-col items-center">
+                                        <button 
+                                            onClick={drawBall}
+                                            disabled={isAnimating || items.length === 0}
+                                            className={`relative w-24 h-24 bg-gray-200 rounded-full shadow-[0_5px_15px_rgba(0,0,0,0.3)] border-4 border-gray-400 flex items-center justify-center active:scale-95 transition-transform overflow-hidden ${isAnimating ? 'crank-turn' : 'hover:scale-105 hover:bg-white crank-attention shine-effect'}`}
+                                        >
+                                            <div className="w-4 h-20 bg-red-600 rounded-full transform rotate-45 absolute shadow-md z-10"></div>
+                                            <div className="w-20 h-4 bg-red-600 rounded-full transform rotate-45 absolute shadow-md z-10"></div>
+                                            <div className="w-6 h-6 bg-white rounded-full z-20 shadow-inner border border-gray-300"></div>
+                                        </button>
+                                        <div className="text-xs text-white mt-2 font-bold bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm border border-white/20 animate-bounce">
+                                            돌려주세요
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Controls & Result Section */}
+                        <div className="w-full lg:w-1/2 flex flex-col gap-6">
+                            
+                            {/* Result Popup - 오른쪽 영역에 크게 표시 */}
+                            {currentBall && (
+                                <div className="w-full bg-yellow-100/20 backdrop-blur-md p-6 rounded-3xl border-4 border-yellow-300 shadow-[0_0_30px_rgba(253,224,71,0.5)] flex flex-col items-center justify-center min-h-[200px] result-popup relative overflow-hidden">
+                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse pointer-events-none"></div>
+                                    <div className="text-yellow-300 font-bold text-4xl mb-4 title-font animate-bounce drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">🎉 축하합니다! 🎉</div>
+                                    <div className="w-40 h-40 rounded-full bg-gradient-to-br from-yellow-300 to-yellow-500 border-8 border-white shadow-2xl flex items-center justify-center text-black font-bold text-center text-3xl p-4 leading-tight transform hover:scale-110 transition-transform">
+                                        {currentBall}
+                                    </div>
+                                    <button 
+                                        onClick={() => setCurrentBall(null)}
+                                        className="absolute top-2 right-2 text-white/50 hover:text-white"
+                                    >
+                                        <i data-lucide="x-circle" className="w-6 h-6"></i>
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Controls */}
+                            <div className="bg-white/10 backdrop-blur-xl p-8 rounded-3xl border border-white/30 shadow-[0_0_30px_rgba(255,255,255,0.1)] relative overflow-hidden">
+                                <div className="absolute -top-10 -right-10 text-9xl opacity-10 rotate-12 pointer-events-none">🎁</div>
+
+                                <div className="flex justify-between items-end border-b border-white/20 pb-2 mb-6">
+                                    <h2 className="text-3xl font-bold text-green-300 flex items-center gap-3 title-font m-0">
+                                        <i data-lucide="settings" className="w-6 h-6"></i> 산타의 맞춤 설정
+                                    </h2>
+                                    <button 
+                                        onClick={() => setIsSetupComplete(false)}
+                                        className="text-xs bg-white/10 hover:bg-white/20 text-yellow-200 px-3 py-1.5 rounded-full transition-colors flex items-center gap-1 mb-1 border border-white/10"
+                                        title="학교/학년/반 정보 다시 입력하기"
+                                    >
+                                        <i data-lucide="rotate-ccw" className="w-3 h-3"></i> 참가자 정보 재입력
+                                    </button>
+                                </div>
+
+                                <div className="flex flex-wrap gap-3 mb-6">
+                                    <button 
+                                        onClick={toggleMusic}
+                                        className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm transition-all transform hover:scale-105 shadow-lg ${isMusicOn ? 'bg-gradient-to-r from-green-600 to-green-500 text-white border border-green-400' : 'bg-gray-700 text-gray-400 border border-gray-600'}`}
+                                    >
+                                        {isMusicOn ? '🎶 캐롤 끄기' : '🎵 캐롤 켜기'}
+                                    </button>
+                                    <button 
+                                        onClick={() => setIsSoundOn(!isSoundOn)}
+                                        className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm transition-all transform hover:scale-105 shadow-lg ${isSoundOn ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white border border-blue-400' : 'bg-gray-700 text-gray-400 border border-gray-600'}`}
+                                    >
+                                        {isSoundOn ? '🔊 소리 끄기' : '🔇 소리 켜기'}
+                                    </button>
+                                    <button 
+                                        onClick={() => setLanguage(prev => prev === 'ko-KR' ? 'en-US' : 'ko-KR')}
+                                        className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm transition-all transform hover:scale-105 shadow-lg ${language === 'en-US' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white border border-indigo-400' : 'bg-pink-600 text-white border border-pink-400'}`}
+                                    >
+                                        {language === 'ko-KR' ? '🇰🇷 한국어 음성' : '🇺🇸 영어로 읽기'}
+                                    </button>
+                                </div>
+
+                                {/* Game Mode & Input Area */}
+                                <div className="mb-6 bg-black/30 p-4 rounded-2xl border border-white/10">
+                                    <label className="text-sm text-yellow-200 mb-2 block font-bold flex items-center gap-2">
+                                        <i data-lucide="list" className="w-4 h-4"></i> 검볼 내용 <span className="text-xs text-red-300 font-normal ml-1 drop-shadow-md bg-black/20 px-1 rounded">* 쉼표(,)로 구분해 주세요</span>
+                                    </label>
+                                    
+                                    <div className="mb-2">
+                                        <span className="text-xs text-gray-400 block mb-1">출석 번호로만 뽑기에 참여할 경우:</span>
+                                        <div className="flex items-center gap-1 bg-gray-900/30 p-1 rounded-lg">
+                                            <span className="text-xs text-gray-300 ml-1">마지막 번호:</span>
+                                            <button onClick={() => adjustCount(-1)} className="w-6 h-6 bg-gray-600 rounded text-xs">-</button>
+                                            <span className="text-sm font-mono w-8 text-center">{numberCount}</span>
+                                            <button onClick={() => adjustCount(1)} className="w-6 h-6 bg-gray-600 rounded text-xs">+</button>
+                                            <button onClick={applyNumberGenerator} className="text-xs bg-green-600 px-2 py-1 rounded ml-auto hover:bg-green-500 transition-colors">출석번호 적용</button>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <input type="file" ref={fileInputRef} onChange={handleFileUpload} accept=".txt,.csv" className="hidden" />
+                                        <button onClick={triggerFileUpload} className="text-xs bg-blue-600 hover:bg-blue-500 px-2 py-1 rounded flex items-center gap-1 transition-colors">
+                                            <i data-lucide="upload" className="w-3 h-3"></i> 파일
+                                        </button>
+                                        <button 
+                                            onClick={clearAll}
+                                            className="text-xs bg-gray-600 hover:bg-red-600 text-white px-2 py-1 rounded flex items-center gap-1 transition-colors"
+                                            title="전체 삭제"
+                                        >
+                                            <i data-lucide="trash-2" className="w-3 h-3"></i>
+                                        </button>
+                                    </div>
+
+                                    <textarea 
+                                        value={itemsInput}
+                                        onChange={handleInputChange}
+                                        className="w-full h-20 p-3 rounded-xl bg-gray-800/80 border border-gray-600 text-white text-xs placeholder-gray-400 focus:border-green-400 focus:outline-none"
+                                        placeholder="예: 사과, 배, 포도 (쉼표로 구분하여 입력)"
+                                    />
+                                    
+                                    {/* New Apply Button */}
+                                    <button 
+                                        onClick={resetGame}
+                                        className="w-full mt-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-lg shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 text-sm"
+                                    >
+                                        <i data-lucide="check-circle" className="w-4 h-4"></i> 입력 완료 및 적용하기
+                                    </button>
+                                    
+                                    <div className="flex justify-between mt-3 items-center">
+                                        <div className="flex gap-1 bg-gray-900/50 p-1 rounded-lg flex-1 mr-2">
+                                            <button 
+                                                onClick={() => setIsReplacementMode(true)} 
+                                                className={`flex-1 px-2 py-1.5 rounded text-xs transition-colors ${isReplacementMode ? 'bg-red-600 text-white font-bold shadow' : 'text-gray-400 hover:text-white'}`}
+                                            >
+                                                당첨볼 다시 넣기
+                                            </button>
+                                            <button 
+                                                onClick={() => setIsReplacementMode(false)} 
+                                                className={`flex-1 px-2 py-1.5 rounded text-xs transition-colors ${!isReplacementMode ? 'bg-red-600 text-white font-bold shadow' : 'text-gray-400 hover:text-white'}`}
+                                            >
+                                                당첨볼 빼기
+                                            </button>
+                                        </div>
+                                        <span className="text-xs bg-red-600 px-3 py-1 rounded-full font-bold self-center whitespace-nowrap">{items.length}개 남음</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <footer className="mt-16 text-gray-400 text-xs text-center pb-8 relative z-20">
+                        <p>🎄 Happy Holidays! Christmas Gumball Machine 🎄</p>
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+        
+        setTimeout(() => {
+            if(window.lucide) window.lucide.createIcons();
+        }, 100);
+    </script>
+</body>
+</html>
